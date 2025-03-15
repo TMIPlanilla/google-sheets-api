@@ -7,14 +7,17 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🟢 Servir archivos estáticos en `public/` y `funciones/`
+// Servir archivos estáticos de "public"
 app.use(express.static("public"));
-app.use(express.static("funciones"));
+
+// Servir archivos estáticos de "funciones"
+app.use("/funciones", express.static("funciones"));
 
 // Configurar autenticación con Google Sheets usando la variable de entorno
 const credentials = JSON.parse(process.env.CREDENTIALS_JSON);
+
 const auth = new google.auth.GoogleAuth({
-    credentials: credentials,
+    credentials: credentials, // Usa las credenciales desde la variable de entorno
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
