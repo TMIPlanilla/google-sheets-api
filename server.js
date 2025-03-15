@@ -1,26 +1,20 @@
 const express = require("express");
 const { google } = require("googleapis");
 const dotenv = require("dotenv");
-const path = require("path"); // 📌 Importar 'path' para manejar rutas de archivos
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 📌 Servir archivos estáticos desde la carpeta "public"
-app.use(express.static(path.join(__dirname, "public")));
-
-// 📌 Ruta para servir index.html en "/"
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+// 🟢 Servir archivos estáticos en `public/` y `funciones/`
+app.use(express.static("public"));
+app.use(express.static("funciones"));
 
 // Configurar autenticación con Google Sheets usando la variable de entorno
 const credentials = JSON.parse(process.env.CREDENTIALS_JSON);
-
 const auth = new google.auth.GoogleAuth({
-    credentials: credentials, // Usa las credenciales desde la variable de entorno
+    credentials: credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
@@ -60,5 +54,5 @@ app.get("/data/:sheet/:range", async (req, res) => {
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-    console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
