@@ -42,36 +42,58 @@ async function getSheetData(sheetId, range) {
     }
 }
 
-// Función para insertar datos en la hoja destino
-async function appendToSheet(sheetId, data) {
+// Función para encontrar la última fila vacía en la hoja
+async function getFirstEmptyRow(sheetId, sheetName) {
     try {
         const client = await auth.getClient();
         const sheets = google.sheets({ version: "v4", auth: client });
 
-        // Buscar la primera fila vacía
-        const range = "A:A"; // Se usa la columna A para determinar la primera fila vacía
+        const range = `${sheetName}!A:A`; // Se usa la columna A para determinar la primera fila vacía
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: sheetId,
             range: range,
         });
 
         const numRows = response.data.values ? response.data.values.length : 0;
-        const startRow = numRows + 1; // Siguiente fila vacía
+        
+        // Buscar manualmente la primera fila realmente vacía
+        for (let i = 0; i < numRows; i++) {
+            if (!response.data.values[i] || response.data.values[i][0] === "") {
+                return i + 1; // Retorna la primera fila vacía
+            }
+        }
+
+        return numRows + 1; // Si no hay filas vacías en el medio, retorna la siguiente disponible
+    } catch (error) {
+        console.error("❌ Error al obtener la última fila vacía:", error);
+        return null;
+    }
+}
+
+// Función para insertar datos en la hoja destino
+async function appendToSheet(sheetId, sheetName, data) {
+    try {
+        const client = await auth.getClient();
+        const sheets = google.sheets({ version: "v4", auth: client });
+
+        const startRow = await getFirstEmptyRow(sheetId, sheetName);
+        if (!startRow) {
+            throw new Error("No se pudo determinar la última fila vacía.");
+        }
 
         console.log(`📌 Insertando datos en la hoja con ID: ${sheetId}`);
         console.log(`📌 Insertando en la fila: ${startRow}`);
 
         // Insertar datos en la hoja de destino
-        const result = await sheets.spreadsheets.values.append({
+        const result = await sheets.spreadsheets.values.update({
             spreadsheetId: sheetId,
-            range: `A${startRow}`,
+            range: `${sheetName}!A${startRow}`,
             valueInputOption: "RAW",
-            insertDataOption: "INSERT_ROWS",
             resource: { values: data },
         });
 
         console.log(`✅ Datos insertados correctamente en la fila ${startRow}.`);
-        return { success: true };
+        return { success: true, insertedRow: startRow };
     } catch (error) {
         console.error("❌ Error al insertar datos en Google Sheets:", error);
         return { success: false, error: error.message };
@@ -81,17 +103,15 @@ async function appendToSheet(sheetId, data) {
 // Ruta para obtener datos de una hoja específica
 app.get("/data/:sheet/:range", async (req, res) => {
     try {
-        const sheetName = req.params.sheet.toUpperCase();
+        const sheetName = req.params.sheet;
         const range = req.params.range;
-
-        // Buscar el ID de la hoja en el archivo .env
-        const sheetId = process.env[`GOOGLE_SHEET_${sheetName}`];
+        const sheetId = process.env.GOOGLE_SHEET_SEMANAS;
 
         if (!sheetId) {
             return res.status(400).json({ error: "Hoja no encontrada en .env" });
         }
 
-        const data = await getSheetData(sheetId, range);
+        const data = await getSheetData(sheetId, `${sheetName}!${range}`);
         if (!data) {
             return res.status(500).json({ error: "Error obteniendo los datos" });
         }
@@ -107,6 +127,8 @@ app.get("/data/:sheet/:range", async (req, res) => {
 app.post("/importar-datos", async (req, res) => {
     try {
         const sheetId = process.env.GOOGLE_SHEET_SEMANAS;
+        const sheetName = "Semanas"; // Asegurarnos de usar la hoja correcta
+
         if (!sheetId) {
             return res.status(400).json({ error: "ID de la hoja destino no configurado." });
         }
@@ -116,7 +138,7 @@ app.post("/importar-datos", async (req, res) => {
             ["Ejemplo Nombre", "Fecha", "Entrada", "Salida", "Actividad"]
         ];
 
-        const resultado = await appendToSheet(sheetId, datosAInsertar);
+        const resultado = await appendToSheet(sheetId, sheetName, datosAInsertar);
 
         res.json(resultado);
     } catch (error) {
