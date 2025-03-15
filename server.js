@@ -7,7 +7,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware para parsear JSON
+// Middleware para permitir JSON en las solicitudes POST
 app.use(express.json());
 
 // Servir archivos estáticos de "public"
@@ -26,37 +26,57 @@ const auth = new google.auth.GoogleAuth({
 
 // Función para obtener datos de Google Sheets
 async function getSheetData(sheetId, range) {
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: "v4", auth: client });
+    try {
+        const client = await auth.getClient();
+        const sheets = google.sheets({ version: "v4", auth: client });
 
-    const response = await sheets.spreadsheets.values.get({
-        spreadsheetId: sheetId,
-        range: range,
-    });
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: range,
+        });
 
-    return response.data.values;
+        return response.data.values;
+    } catch (error) {
+        console.error("❌ Error al obtener los datos:", error);
+        return null;
+    }
 }
 
-// ✅ NUEVA RUTA: Importar datos desde Google Sheets
-app.post("/importar-datos", async (req, res) => {
+// Función para insertar datos en la hoja destino
+async function appendToSheet(sheetId, data) {
     try {
-        const sheetId = process.env.GOOGLE_SHEET_RESPUESTASFORMULARIO; // ID de la hoja
-        const sheetName = "Respuestasformulario"; // Nombre de la hoja
-        const range = "A1:H1000"; // Rango de datos
+        const client = await auth.getClient();
+        const sheets = google.sheets({ version: "v4", auth: client });
 
-        const data = await getSheetData(sheetId, `${sheetName}!${range}`);
+        // Buscar la primera fila vacía
+        const range = "A:A"; // Se usa la columna A para determinar la primera fila vacía
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: range,
+        });
 
-        if (!data || data.length === 0) {
-            return res.status(400).json({ success: false, error: "No se encontraron datos en la hoja." });
-        }
+        const numRows = response.data.values ? response.data.values.length : 0;
+        const startRow = numRows + 1; // Siguiente fila vacía
 
-        console.log("✅ Datos importados:", data.length, "filas.");
-        res.json({ success: true, data });
+        console.log(`📌 Insertando datos en la hoja con ID: ${sheetId}`);
+        console.log(`📌 Insertando en la fila: ${startRow}`);
+
+        // Insertar datos en la hoja de destino
+        const result = await sheets.spreadsheets.values.append({
+            spreadsheetId: sheetId,
+            range: `A${startRow}`,
+            valueInputOption: "RAW",
+            insertDataOption: "INSERT_ROWS",
+            resource: { values: data },
+        });
+
+        console.log(`✅ Datos insertados correctamente en la fila ${startRow}.`);
+        return { success: true };
     } catch (error) {
-        console.error("❌ Error al importar datos:", error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error("❌ Error al insertar datos en Google Sheets:", error);
+        return { success: false, error: error.message };
     }
-});
+}
 
 // Ruta para obtener datos de una hoja específica
 app.get("/data/:sheet/:range", async (req, res) => {
@@ -72,14 +92,40 @@ app.get("/data/:sheet/:range", async (req, res) => {
         }
 
         const data = await getSheetData(sheetId, range);
+        if (!data) {
+            return res.status(500).json({ error: "Error obteniendo los datos" });
+        }
+
         res.json({ data });
     } catch (error) {
-        console.error("Error al obtener los datos:", error);
-        res.status(500).send("Error obteniendo los datos");
+        console.error("❌ Error en la solicitud de datos:", error);
+        res.status(500).json({ error: "Error en la solicitud" });
+    }
+});
+
+// Ruta para importar datos a la hoja de destino
+app.post("/importar-datos", async (req, res) => {
+    try {
+        const sheetId = process.env.GOOGLE_SHEET_SEMANAS;
+        if (!sheetId) {
+            return res.status(400).json({ error: "ID de la hoja destino no configurado." });
+        }
+
+        // Datos de ejemplo para insertar (debes reemplazar esto con los datos correctos desde el frontend)
+        const datosAInsertar = [
+            ["Ejemplo Nombre", "Fecha", "Entrada", "Salida", "Actividad"]
+        ];
+
+        const resultado = await appendToSheet(sheetId, datosAInsertar);
+
+        res.json(resultado);
+    } catch (error) {
+        console.error("❌ Error en la importación:", error);
+        res.status(500).json({ error: "Error en la importación" });
     }
 });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-    console.log(`✅ Servidor corriendo en el puerto ${PORT}`);
+    console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
