@@ -1,6 +1,5 @@
 const express = require("express");
 const { google } = require("googleapis");
-const fs = require("fs");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -8,9 +7,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configurar autenticación con Google Sheets
+// Configurar autenticación con Google Sheets usando la variable de entorno
+const credentials = JSON.parse(process.env.CREDENTIALS_JSON);
+
 const auth = new google.auth.GoogleAuth({
-    keyFile: "credentials.json", // Archivo de credenciales
+    credentials: credentials, // Usa las credenciales desde la variable de entorno
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
@@ -50,6 +51,7 @@ app.get("/data/:sheet/:range", async (req, res) => {
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
+
  
