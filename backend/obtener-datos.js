@@ -1,10 +1,15 @@
 const { sheets } = require("./autenticacion");
-const { SHEET_RESPUESTAS } = require("./credentials");
+
+const SHEET_RESPUESTAS = process.env.SHEET_RESPUESTAS; // Leer desde variables de entorno
 
 async function obtenerDatos(req, res) {
     try {
         const { range } = req.params;
         
+        if (!SHEET_RESPUESTAS) {
+            throw new Error("El ID de la hoja SHEET_RESPUESTAS no está definido en las variables de entorno.");
+        }
+
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SHEET_RESPUESTAS,
             range: range,
@@ -18,4 +23,4 @@ async function obtenerDatos(req, res) {
 }
 
 module.exports = obtenerDatos;
- 
+
