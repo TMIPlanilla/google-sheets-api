@@ -19,7 +19,7 @@ async function insertarDatos(req, res) {
         }
 
         // Asegurar que no se envía el encabezado
-        const datosSinEncabezado = newData.slice(1);
+        const datosSinEncabezado = newData.filter((_, index) => index !== 0);
 
         console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
@@ -46,12 +46,10 @@ async function insertarDatos(req, res) {
             return res.json({ success: false, message: "No hay datos nuevos para importar." });
         }
 
-        // Buscar la primera fila vacía
-        const startRow = existingData.length + 1;
-
+        // Insertar los datos en la hoja de destino
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_SEMANAS,
-            range: `A${startRow}`,
+            range: "A:G",
             valueInputOption: "RAW",
             insertDataOption: "INSERT_ROWS",
             resource: { values: filteredData },
