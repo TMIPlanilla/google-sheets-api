@@ -17,24 +17,27 @@ setTimeout(asignarEventoImportar, 500);
 async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
+    // Datos de prueba (Reemplazar esto con los datos reales que deben importarse)
+    const datosAEnviar = [
+        ["Ejemplo Nombre", "Fecha", "Entrada", "Salida", "Actividad"]
+    ];
+
+    console.log("📌 Datos enviados al servidor:", datosAEnviar);
+
     try {
-        const response = await fetch("/api/importar-datos", { 
+        const response = await fetch("/api/importar-datos", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: [] }) // Aquí se deben enviar los datos correctos
+            body: JSON.stringify({ data: datosAEnviar })
         });
-
-        if (!response.ok) {
-            throw new Error(`Error en la solicitud: ${response.status}`);
-        }
 
         const data = await response.json();
         console.log("📌 Respuesta del servidor:", data);
 
         if (data.success) {
-            mostrarNotificacion(`✅ ${data.message}`, "success");
+            mostrarNotificacion("✅ Importación completada correctamente.", "success");
         } else {
-            mostrarNotificacion(`❌ Error en la importación: ${data.error || data.message}`, "error");
+            mostrarNotificacion("❌ Error en la importación: " + data.message, "error");
         }
     } catch (error) {
         console.error("❌ Error en la solicitud al servidor:", error);
