@@ -18,9 +18,8 @@ async function insertarDatos(req, res) {
             return res.status(400).json({ success: false, message: "No se recibieron datos válidos para importar." });
         }
 
-        // Asegurar que no se envía el encabezado
-        const datosSinEncabezado = newData.filter((_, index) => index !== 0);
-
+        // Eliminar el encabezado
+        const datosSinEncabezado = newData.slice(1);
         console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
         // Obtener datos actuales de la hoja destino
@@ -30,7 +29,6 @@ async function insertarDatos(req, res) {
         });
 
         const existingData = existingDataResponse.data.values || [];
-
         console.log(`📌 Datos existentes en la hoja destino: ${existingData.length} filas`);
 
         // Filtrar solo los datos que no estén ya en la hoja destino
@@ -46,10 +44,12 @@ async function insertarDatos(req, res) {
             return res.json({ success: false, message: "No hay datos nuevos para importar." });
         }
 
-        // Insertar los datos en la hoja de destino
+        // Buscar la primera fila vacía
+        const startRow = existingData.length + 1;
+
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_SEMANAS,
-            range: "A:G",
+            range: `A${startRow}`,
             valueInputOption: "RAW",
             insertDataOption: "INSERT_ROWS",
             resource: { values: filteredData },
