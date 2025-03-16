@@ -1,12 +1,29 @@
+function asignarEventoImportar() {
+    const botonImportar = document.getElementById("importarDatos");
+
+    if (botonImportar) {
+        botonImportar.removeEventListener("click", enviarSolicitudAlServidor);
+        botonImportar.addEventListener("click", enviarSolicitudAlServidor);
+        botonImportar.disabled = false; // 🔹 Habilita el botón al cargar
+        console.log("✅ Evento 'click' agregado correctamente al botón 'Importar Datos'.");
+    } else {
+        console.error("❌ ERROR: No se encontró el botón 'Importar Datos'. Intentando nuevamente en 500ms...");
+        setTimeout(asignarEventoImportar, 500);
+    }
+}
+
+// Ejecutar la asignación después de un tiempo para garantizar que el botón existe
+setTimeout(asignarEventoImportar, 500);
+
 async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
         // Obtener datos de la hoja fuente antes de enviarlos
-        const responseDatos = await fetch("/api/data/A1:H1000"); // Asegurar que se toman todas las filas
+        const responseDatos = await fetch("/api/data/A1:H1000"); // 🔹 Asegurar que se toman todas las filas
         const datos = await responseDatos.json();
 
-        console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5)); // Mostrar las primeras 5 filas
+        console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5)); // 🔹 Mostrar las primeras 5 filas
 
         if (!datos.data || datos.data.length <= 1) {
             console.error("❌ No se encontraron datos válidos en la hoja fuente.");
