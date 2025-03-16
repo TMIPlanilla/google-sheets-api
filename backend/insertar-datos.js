@@ -4,18 +4,19 @@ const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // Definir desde variables de e
 
 async function insertarDatos(req, res) {
     try {
-        // 🔹 Validar si los datos existen y son un array
-        if (!req.body || !req.body.data || !Array.isArray(req.body.data)) {
-            throw new Error("❌ Error: No se recibieron datos válidos para importar.");
-        }
-
         const newData = req.body.data;
 
         if (!SHEET_SEMANAS) {
             throw new Error("El ID de la hoja SHEET_SEMANAS no está definido en las variables de entorno.");
         }
 
-        console.log("📌 Obteniendo datos actuales de la hoja...");
+        if (!newData || newData.length === 0) {
+            return res.json({ success: false, message: "No se recibieron datos para importar." });
+        }
+
+        console.log("📌 Datos recibidos para importar:", newData.length, "filas");
+
+        // Obtener datos actuales de la hoja
         const existingDataResponse = await sheets.spreadsheets.values.get({
             spreadsheetId: SHEET_SEMANAS,
             range: "A:G",
@@ -23,29 +24,23 @@ async function insertarDatos(req, res) {
 
         const existingData = existingDataResponse.data.values || [];
 
-        console.log(`📌 Datos existentes: ${existingData.length} filas encontradas.`);
+        console.log("📌 Datos existentes en la hoja destino:", existingData.length, "filas");
 
-        // 🔹 Validar que `existingData` es un array antes de aplicar `.some()`
-        if (!Array.isArray(existingData)) {
-            throw new Error("❌ Error: Los datos obtenidos de la hoja no son un array válido.");
-        }
-
-        // 🔹 Filtrar solo los datos nuevos que no están en la hoja destino
+        // Filtrar datos nuevos que no estén en la hoja destino
         const filteredData = newData.filter(row =>
             !existingData.some(existingRow =>
-                Array.isArray(existingRow) && existingRow.slice(0, 7).join("") === row.slice(0, 7).join("")
+                existingRow.slice(0, 7).join("|") === row.slice(0, 7).join("|") // Usamos "|" para evitar coincidencias parciales
             )
         );
 
+        console.log("📌 Filas a insertar después de filtrar:", filteredData.length);
+
         if (filteredData.length === 0) {
-            console.log("🔹 No hay datos nuevos para importar.");
             return res.json({ success: false, message: "No hay datos nuevos para importar." });
         }
 
-        // 🔹 Buscar la primera fila vacía
+        // Buscar la primera fila vacía
         const startRow = existingData.length + 1;
-        console.log(`📌 Insertando ${filteredData.length} filas nuevas en la hoja a partir de la fila ${startRow}...`);
-
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_SEMANAS,
             range: `A${startRow}`,
@@ -54,11 +49,10 @@ async function insertarDatos(req, res) {
             resource: { values: filteredData },
         });
 
-        console.log("✅ Importación completada con éxito.");
         res.json({ success: true, message: `✅ ${filteredData.length} nuevas filas añadidas.` });
     } catch (error) {
-        console.error("❌ Error al insertar datos:", error.message);
-        res.status(500).json({ error: error.message });
+        console.error("❌ Error al insertar datos:", error);
+        res.status(500).json({ error: "Error al insertar datos en Google Sheets" });
     }
 }
 
