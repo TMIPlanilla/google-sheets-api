@@ -1,6 +1,7 @@
 const { sheets } = require("./autenticacion");
 
-const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // Asegurar que está correctamente definida
+const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // ID del archivo de Google Sheets
+const HOJA_DESTINO = "Semanas"; // Nombre de la hoja correcta
 
 async function insertarDatos(req, res) {
     try {
@@ -18,14 +19,14 @@ async function insertarDatos(req, res) {
             return res.status(400).json({ success: false, message: "No se recibieron datos válidos para importar." });
         }
 
-        // Eliminar el encabezado
+        // Remover el encabezado
         const datosSinEncabezado = newData.slice(1);
         console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
         // Obtener datos actuales de la hoja destino
         const existingDataResponse = await sheets.spreadsheets.values.get({
             spreadsheetId: SHEET_SEMANAS,
-            range: "A:G",
+            range: `${HOJA_DESTINO}!A:G`,
         });
 
         const existingData = existingDataResponse.data.values || [];
@@ -49,7 +50,7 @@ async function insertarDatos(req, res) {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_SEMANAS,
-            range: `A${startRow}`,
+            range: `${HOJA_DESTINO}!A${startRow}`,
             valueInputOption: "RAW",
             insertDataOption: "INSERT_ROWS",
             resource: { values: filteredData },

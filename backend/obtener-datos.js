@@ -1,6 +1,6 @@
 const { sheets } = require("./autenticacion");
 
-const SHEET_RESPUESTAS = process.env.SHEET_RESPUESTAS; // Leer desde variables de entorno
+const SHEET_RESPUESTAS = process.env.SHEET_RESPUESTAS; // ID del archivo de Google Sheets
 
 async function obtenerDatos(req, res) {
     try {
@@ -12,10 +12,8 @@ async function obtenerDatos(req, res) {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SHEET_RESPUESTAS,
-            range: range,
+            range: `Respuestasformulario!${range}`, // Asegurar que obtiene de la hoja fuente correcta
         });
-
-        console.log("📌 Datos obtenidos desde la hoja fuente:", response.data.values.slice(0, 5)); // Mostrar primeras 5 filas
 
         res.json({ data: response.data.values || [] });
     } catch (error) {
