@@ -10,13 +10,13 @@ async function insertarDatos(req, res) {
             throw new Error("El ID de la hoja SHEET_SEMANAS no está definido en las variables de entorno.");
         }
 
-        if (!newData || newData.length === 0) {
-            return res.json({ success: false, message: "No se recibieron datos para importar." });
+        if (!Array.isArray(newData) || newData.length === 0) {
+            return res.status(400).json({ success: false, message: "No se recibieron datos para importar." });
         }
 
-        console.log("📌 Datos recibidos para importar:", newData.length, "filas");
+        console.log(`📌 Datos recibidos para importar: ${newData.length} filas`);
 
-        // Obtener datos actuales de la hoja
+        // Obtener datos actuales de la hoja destino
         const existingDataResponse = await sheets.spreadsheets.values.get({
             spreadsheetId: SHEET_SEMANAS,
             range: "A:G",
@@ -24,16 +24,16 @@ async function insertarDatos(req, res) {
 
         const existingData = existingDataResponse.data.values || [];
 
-        console.log("📌 Datos existentes en la hoja destino:", existingData.length, "filas");
+        console.log(`📌 Datos existentes en la hoja destino: ${existingData.length} filas`);
 
-        // Filtrar datos nuevos que no estén en la hoja destino
+        // Filtrar solo los datos que no estén ya en la hoja destino
         const filteredData = newData.filter(row =>
             !existingData.some(existingRow =>
-                existingRow.slice(0, 7).join("|") === row.slice(0, 7).join("|") // Usamos "|" para evitar coincidencias parciales
+                existingRow.slice(0, 7).join("|") === row.slice(0, 7).join("|")
             )
         );
 
-        console.log("📌 Filas a insertar después de filtrar:", filteredData.length);
+        console.log(`📌 Filas a insertar después de filtrar: ${filteredData.length}`);
 
         if (filteredData.length === 0) {
             return res.json({ success: false, message: "No hay datos nuevos para importar." });
@@ -41,6 +41,7 @@ async function insertarDatos(req, res) {
 
         // Buscar la primera fila vacía
         const startRow = existingData.length + 1;
+
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_SEMANAS,
             range: `A${startRow}`,
