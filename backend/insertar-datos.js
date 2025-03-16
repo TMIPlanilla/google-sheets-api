@@ -8,7 +8,7 @@ async function insertarDatos(req, res) {
 
         console.log(`📌 ID de SHEET_SEMANAS: ${SHEET_SEMANAS}`);
         console.log(`📌 Datos recibidos para importar: ${newData.length} filas`);
-        console.log("📌 Vista previa de los datos recibidos:", newData.slice(0, 5)); // Imprimir las primeras 5 filas
+        console.log("📌 Vista previa de los datos recibidos:", newData.slice(0, 5)); // Mostrar primeras 5 filas
 
         if (!SHEET_SEMANAS) {
             return res.status(500).json({ success: false, message: "El ID de la hoja SHEET_SEMANAS no está definido." });
@@ -18,8 +18,8 @@ async function insertarDatos(req, res) {
             return res.status(400).json({ success: false, message: "No se recibieron datos válidos para importar." });
         }
 
-        // Eliminar el encabezado antes de importar
-        const datosSinEncabezado = newData.slice(1); // Se salta la primera fila
+        // Asegurar que no se envía el encabezado
+        const datosSinEncabezado = newData.slice(1);
 
         console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
