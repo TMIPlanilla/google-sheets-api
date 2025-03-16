@@ -1,20 +1,27 @@
 const { sheets } = require("./autenticacion");
 
-const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // Definir desde variables de entorno
+const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // Asegurar que está correctamente definida
 
 async function insertarDatos(req, res) {
     try {
         const newData = req.body.data;
 
-        if (!SHEET_SEMANAS) {
-            throw new Error("El ID de la hoja SHEET_SEMANAS no está definido en las variables de entorno.");
-        }
-
-        if (!Array.isArray(newData) || newData.length === 0) {
-            return res.status(400).json({ success: false, message: "No se recibieron datos para importar." });
-        }
-
+        console.log(`📌 ID de SHEET_SEMANAS: ${SHEET_SEMANAS}`);
         console.log(`📌 Datos recibidos para importar: ${newData.length} filas`);
+        console.log("📌 Vista previa de los datos recibidos:", newData.slice(0, 5)); // Imprimir las primeras 5 filas
+
+        if (!SHEET_SEMANAS) {
+            return res.status(500).json({ success: false, message: "El ID de la hoja SHEET_SEMANAS no está definido." });
+        }
+
+        if (!Array.isArray(newData) || newData.length <= 1) {
+            return res.status(400).json({ success: false, message: "No se recibieron datos válidos para importar." });
+        }
+
+        // Eliminar el encabezado antes de importar
+        const datosSinEncabezado = newData.slice(1); // Se salta la primera fila
+
+        console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
         // Obtener datos actuales de la hoja destino
         const existingDataResponse = await sheets.spreadsheets.values.get({
@@ -27,7 +34,7 @@ async function insertarDatos(req, res) {
         console.log(`📌 Datos existentes en la hoja destino: ${existingData.length} filas`);
 
         // Filtrar solo los datos que no estén ya en la hoja destino
-        const filteredData = newData.filter(row =>
+        const filteredData = datosSinEncabezado.filter(row =>
             !existingData.some(existingRow =>
                 existingRow.slice(0, 7).join("|") === row.slice(0, 7).join("|")
             )
