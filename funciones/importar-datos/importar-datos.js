@@ -18,15 +18,24 @@ async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
-        const response = await fetch("/importar-datos", { method: "POST" });
-        const data = await response.json();
+        const response = await fetch("/api/importar-datos", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
+        if (!response.ok) {
+            throw new Error(`Error en la solicitud: ${response.status}`);
+        }
+
+        const data = await response.json();
         console.log("📌 Respuesta del servidor:", data);
 
         if (data.success) {
-            mostrarNotificacion("✅ Importación completada correctamente.", "success");
+            mostrarNotificacion(`✅ ${data.message}`, "success");
         } else {
-            mostrarNotificacion("❌ Error en la importación: " + data.error, "error");
+            mostrarNotificacion(`⚠️ ${data.message || "No se pudieron importar datos."}`, "warning");
         }
     } catch (error) {
         console.error("❌ Error en la solicitud al servidor:", error);
