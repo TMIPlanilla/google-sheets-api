@@ -4,6 +4,11 @@ const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // Definir desde variables de e
 
 async function insertarDatos(req, res) {
     try {
+        // Validar que se están enviando datos
+        if (!req.body || !req.body.data || !Array.isArray(req.body.data)) {
+            throw new Error("❌ Error: No se recibieron datos válidos para importar.");
+        }
+
         const newData = req.body.data;
 
         if (!SHEET_SEMANAS) {
@@ -42,7 +47,7 @@ async function insertarDatos(req, res) {
         res.json({ success: true, message: `✅ ${filteredData.length} nuevas filas añadidas.` });
     } catch (error) {
         console.error("❌ Error al insertar datos:", error);
-        res.status(500).json({ error: "Error al insertar datos en Google Sheets" });
+        res.status(500).json({ error: error.message });
     }
 }
 
