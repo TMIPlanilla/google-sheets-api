@@ -1,6 +1,7 @@
 const { sheets } = require("./autenticacion");
 
-const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // ID del archivo correcto
+const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // ID del archivo de Google Sheets
+const HOJA_DESTINO = "Semanas"; // Nombre de la hoja correcta
 
 async function insertarDatos(req, res) {
     try {
@@ -14,26 +15,24 @@ async function insertarDatos(req, res) {
             return res.status(500).json({ success: false, message: "El ID de la hoja SHEET_SEMANAS no está definido." });
         }
 
-        if (!Array.isArray(newData) || newData.length < 3) { // Se asegura que haya más de 2 filas (evitando encabezado)
+        if (!Array.isArray(newData) || newData.length <= 1) {
             return res.status(400).json({ success: false, message: "No se recibieron datos válidos para importar." });
         }
 
-        // ✅ Omitir la primera fila (encabezados) y empezar desde la fila de datos reales
-        const datosSinEncabezado = newData.slice(2);
-
+        // Remover el encabezado
+        const datosSinEncabezado = newData.slice(1);
         console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
-        // ✅ Obtener datos actuales de la hoja destino (Semanas)
+        // Obtener datos actuales de la hoja destino
         const existingDataResponse = await sheets.spreadsheets.values.get({
             spreadsheetId: SHEET_SEMANAS,
-            range: "Semanas!A:G", // Asegurar que toma la hoja correcta
+            range: `${HOJA_DESTINO}!A:G`,
         });
 
         const existingData = existingDataResponse.data.values || [];
-
         console.log(`📌 Datos existentes en la hoja destino: ${existingData.length} filas`);
 
-        // ✅ Filtrar solo los datos que no estén ya en la hoja destino
+        // Filtrar solo los datos que no estén ya en la hoja destino
         const filteredData = datosSinEncabezado.filter(row =>
             !existingData.some(existingRow =>
                 existingRow.slice(0, 7).join("|") === row.slice(0, 7).join("|")
@@ -46,18 +45,18 @@ async function insertarDatos(req, res) {
             return res.json({ success: false, message: "No hay datos nuevos para importar." });
         }
 
-        // ✅ Buscar la primera fila vacía en la hoja "Semanas"
+        // Buscar la primera fila vacía
         const startRow = existingData.length + 1;
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_SEMANAS,
-            range: `Semanas!A${startRow}`, // Asegurar que inserta en la hoja correcta
+            range: `${HOJA_DESTINO}!A${startRow}`,
             valueInputOption: "RAW",
             insertDataOption: "INSERT_ROWS",
             resource: { values: filteredData },
         });
 
-        res.json({ success: true, message: `✅ ${filteredData.length} nuevas filas añadidas en "Semanas".` });
+        res.json({ success: true, message: `✅ ${filteredData.length} nuevas filas añadidas.` });
     } catch (error) {
         console.error("❌ Error al insertar datos:", error);
         res.status(500).json({ error: "Error al insertar datos en Google Sheets" });
@@ -65,3 +64,4 @@ async function insertarDatos(req, res) {
 }
 
 module.exports = insertarDatos;
+
