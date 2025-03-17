@@ -1,6 +1,6 @@
 const { sheets } = require("./autenticacion");
 
-const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // ID de la hoja correcta
+const SHEET_SEMANAS = process.env.SHEET_SEMANAS; // ID del archivo correcto
 
 async function insertarDatos(req, res) {
     try {
@@ -14,12 +14,12 @@ async function insertarDatos(req, res) {
             return res.status(500).json({ success: false, message: "El ID de la hoja SHEET_SEMANAS no está definido." });
         }
 
-        if (!Array.isArray(newData) || newData.length <= 1) {
+        if (!Array.isArray(newData) || newData.length < 3) { // Se asegura que haya más de 2 filas (evitando encabezado)
             return res.status(400).json({ success: false, message: "No se recibieron datos válidos para importar." });
         }
 
-        // ✅ Omitir el encabezado antes de importar
-        const datosSinEncabezado = newData.slice(1);
+        // ✅ Omitir la primera fila (encabezados) y empezar desde la fila de datos reales
+        const datosSinEncabezado = newData.slice(2);
 
         console.log(`📌 Datos después de eliminar encabezado: ${datosSinEncabezado.length} filas`);
 
