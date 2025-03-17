@@ -30,30 +30,37 @@ function cargarInterfazImportarDatos() {
         </div>
     `;
 
-    // ✅ Asegurar que el botón se habilita correctamente al marcar el checkbox
+    // ✅ Referencias a elementos
     const checkbox = document.getElementById("validacion");
     const botonImportar = document.getElementById("importarDatos");
 
-    if (checkbox && botonImportar) {
-        checkbox.addEventListener("change", function() {
-            botonImportar.disabled = !this.checked;
-        });
-    } else {
+    if (!checkbox || !botonImportar) {
         console.error("❌ ERROR: No se encontró el checkbox o el botón en el DOM.");
         return;
     }
 
-    // ✅ Cargar `importar-datos.js` dinámicamente y asignar eventos solo cuando haya terminado de cargar
-    const script = document.createElement("script");
-    script.src = "funciones/importar-datos/importar-datos.js";
-    script.onload = () => {
+    // ✅ Habilitar el botón cuando se marque el checkbox
+    checkbox.addEventListener("change", function() {
+        botonImportar.disabled = !this.checked;
+    });
+
+    // ✅ Cargar dinámicamente `importar-datos.js`
+    cargarScript("funciones/importar-datos/importar-datos.js", () => {
         console.log("✅ Script importar-datos.js cargado correctamente.");
         if (typeof asignarEventoImportar === "function") {
-            asignarEventoImportar(); // 🔹 Se asegura que el evento se asigne correctamente
+            asignarEventoImportar(); // 🔹 Se asegura de que la función se ejecute correctamente
         } else {
             console.error("❌ ERROR: La función asignarEventoImportar no está definida en importar-datos.js.");
         }
-    };
+    });
+}
+
+// ✅ Función para cargar scripts dinámicamente y ejecutar una función callback después
+function cargarScript(url, callback) {
+    const script = document.createElement("script");
+    script.src = url;
+    script.onload = callback;
+    script.onerror = () => console.error(`❌ ERROR: No se pudo cargar el script ${url}`);
     document.body.appendChild(script);
 }
 
