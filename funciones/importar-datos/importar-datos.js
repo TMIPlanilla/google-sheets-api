@@ -1,16 +1,42 @@
+function asignarEventoImportar() {
+    const botonImportar = document.getElementById("importarDatos");
+    const checkImportar = document.getElementById("checkImportar");
+
+    if (botonImportar && checkImportar) {
+        botonImportar.disabled = !checkImportar.checked;
+
+        checkImportar.addEventListener("change", () => {
+            botonImportar.disabled = !checkImportar.checked;
+        });
+
+        botonImportar.addEventListener("click", enviarSolicitudAlServidor);
+        console.log("✅ Evento 'click' agregado correctamente al botón 'Importar Datos'.");
+    } else {
+        console.error("❌ ERROR: No se encontró el botón o el checkbox.");
+        setTimeout(asignarEventoImportar, 500); // Reintentar en caso de error
+    }
+}
+
+// Ejecutar la asignación después de un tiempo para garantizar que el botón existe
+setTimeout(asignarEventoImportar, 500);
+
 async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
         // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
-        document.getElementById("importarDatos").disabled = true;
-        document.getElementById("checkImportar").checked = false;
+        const botonImportar = document.getElementById("importarDatos");
+        const checkImportar = document.getElementById("checkImportar");
+
+        botonImportar.disabled = true;
+        checkImportar.checked = false;
 
         // ✅ Borrar mensajes previos de éxito o error
-        document.getElementById("mensajeImportacion").innerHTML = "";
+        const mensajeImportacion = document.getElementById("mensajeImportacion");
+        if (mensajeImportacion) mensajeImportacion.innerHTML = "";
 
         // ✅ Obtener datos de la hoja fuente antes de enviarlos
-        const responseDatos = await fetch("/api/data/A1:H1000"); // Asegurar que se toman todas las filas
+        const responseDatos = await fetch("/api/data/A1:H1000");
         const datos = await responseDatos.json();
 
         console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5)); // Mostrar primeras 5 filas
