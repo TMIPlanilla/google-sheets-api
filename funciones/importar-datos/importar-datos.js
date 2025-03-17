@@ -1,38 +1,10 @@
-function asignarEventoImportar() {
-    const botonImportar = document.getElementById("importarDatos");
-    const checkImportar = document.getElementById("checkImportar");
-
-    if (botonImportar && checkImportar) {
-        botonImportar.removeEventListener("click", enviarSolicitudAlServidor);
-        botonImportar.addEventListener("click", enviarSolicitudAlServidor);
-        console.log("✅ Evento 'click' agregado correctamente al botón 'Importar Datos'.");
-
-        // ✅ Rehabilitar botón cuando el usuario vuelva a marcar el checkbox
-        checkImportar.addEventListener("change", () => {
-            if (checkImportar.checked) {
-                botonImportar.disabled = false;
-                document.getElementById("mensajeImportacion").innerHTML = "";
-            }
-        });
-    } else {
-        console.error("❌ ERROR: No se encontró el botón o checkbox. Intentando nuevamente en 500ms...");
-        setTimeout(asignarEventoImportar, 500);
-    }
-}
-
-// Ejecutar la asignación después de un tiempo para garantizar que el botón existe
-setTimeout(asignarEventoImportar, 500);
-
 async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
-        const botonImportar = document.getElementById("importarDatos");
-        const checkImportar = document.getElementById("checkImportar");
-
         // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
-        botonImportar.disabled = true;
-        checkImportar.checked = false;
+        document.getElementById("importarDatos").disabled = true;
+        document.getElementById("checkImportar").checked = false;
 
         // ✅ Borrar mensajes previos de éxito o error
         document.getElementById("mensajeImportacion").innerHTML = "";
