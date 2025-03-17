@@ -1,24 +1,50 @@
+function asignarEventoImportar() {
+    const botonImportar = document.getElementById("importarDatos");
+    const checkImportar = document.getElementById("checkImportar");
+
+    if (botonImportar && checkImportar) {
+        botonImportar.removeEventListener("click", enviarSolicitudAlServidor);
+        botonImportar.addEventListener("click", enviarSolicitudAlServidor);
+        console.log("✅ Evento 'click' agregado correctamente al botón 'Importar Datos'.");
+
+        // ✅ Rehabilitar botón cuando el usuario vuelva a marcar el checkbox
+        checkImportar.addEventListener("change", () => {
+            if (checkImportar.checked) {
+                botonImportar.disabled = false;
+                document.getElementById("mensajeImportacion").innerHTML = "";
+            }
+        });
+    } else {
+        console.error("❌ ERROR: No se encontró el botón o checkbox. Intentando nuevamente en 500ms...");
+        setTimeout(asignarEventoImportar, 500);
+    }
+}
+
+// Ejecutar la asignación después de un tiempo para garantizar que el botón existe
+setTimeout(asignarEventoImportar, 500);
+
 async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
-        // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
         const botonImportar = document.getElementById("importarDatos");
         const checkImportar = document.getElementById("checkImportar");
-        const mensajeImportacion = document.getElementById("mensajeImportacion");
 
-        botonImportar.disabled = true; // Deshabilitar botón tras el click
-        checkImportar.checked = false; // Desmarcar checkbox
+        // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
+        botonImportar.disabled = true;
+        checkImportar.checked = false;
+
+        // ✅ Borrar mensajes previos de éxito o error
+        document.getElementById("mensajeImportacion").innerHTML = "";
 
         // ✅ Obtener datos de la hoja fuente antes de enviarlos
-        const responseDatos = await fetch("/api/data/A1:H1000");
+        const responseDatos = await fetch("/api/data/A1:H1000"); // Asegurar que se toman todas las filas
         const datos = await responseDatos.json();
 
-        console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5));
+        console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5)); // Mostrar primeras 5 filas
 
-        if (!datos.data || datos.data.length < 3) {
+        if (!datos.data || datos.data.length < 3) { // Se asegura que haya más de 2 filas (evitando encabezado)
             console.error("❌ No se encontraron datos válidos en la hoja fuente.");
-            mensajeImportacion.innerHTML = "⚠ No hay datos nuevos para importar.";
             mostrarNotificacion("❌ No hay datos nuevos para importar.", "error");
             return;
         }
@@ -34,29 +60,12 @@ async function enviarSolicitudAlServidor() {
         console.log("📌 Respuesta del servidor:", data);
 
         if (data.success) {
-            mensajeImportacion.innerHTML = `✔ ${data.message}`; // Mantener mensaje hasta nueva ejecución
             mostrarNotificacion(`✅ Importación completada. ${data.message}`, "success");
         } else {
-            mensajeImportacion.innerHTML = `❌ Error en la importación: ${data.message}`;
             mostrarNotificacion(`❌ Error en la importación: ${data.message}`, "error");
         }
-
     } catch (error) {
         console.error("❌ Error en la solicitud al servidor:", error);
-        mensajeImportacion.innerHTML = "❌ Error en la comunicación con el servidor.";
         mostrarNotificacion("❌ Error en la comunicación con el servidor.", "error");
     }
 }
-
-// ✅ Escuchar cambios en el `checkbox` para habilitar/deshabilitar el botón de importación
-document.getElementById("checkImportar").addEventListener("change", function () {
-    const botonImportar = document.getElementById("importarDatos");
-    const mensajeImportacion = document.getElementById("mensajeImportacion");
-
-    if (this.checked) {
-        botonImportar.disabled = false; // Habilitar botón
-        mensajeImportacion.innerHTML = ""; // Borrar mensaje solo al activar el check
-    } else {
-        botonImportar.disabled = true; // Mantener botón deshabilitado
-    }
-});
