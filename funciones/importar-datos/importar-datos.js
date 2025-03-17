@@ -1,19 +1,29 @@
 function asignarEventoImportar() {
     const botonImportar = document.getElementById("importarDatos");
-    const checkImportar = document.getElementById("checkImportar");
+    const checkboxImportar = document.getElementById("checkImportar");
 
-    if (botonImportar && checkImportar) {
-        botonImportar.disabled = !checkImportar.checked;
+    if (botonImportar && checkboxImportar) {
+        botonImportar.disabled = !checkboxImportar.checked; // Habilitar/deshabilitar basado en el checkbox
 
-        checkImportar.addEventListener("change", () => {
-            botonImportar.disabled = !checkImportar.checked;
+        checkboxImportar.addEventListener("change", () => {
+            botonImportar.disabled = !checkboxImportar.checked; // Re-habilitar el botón solo si el checkbox se marca
+            limpiarMensaje(); // Limpiar mensaje al reactivar el botón
         });
 
+        botonImportar.removeEventListener("click", enviarSolicitudAlServidor);
         botonImportar.addEventListener("click", enviarSolicitudAlServidor);
         console.log("✅ Evento 'click' agregado correctamente al botón 'Importar Datos'.");
     } else {
         console.error("❌ ERROR: No se encontró el botón o el checkbox.");
-        setTimeout(asignarEventoImportar, 500); // Reintentar en caso de error
+        setTimeout(asignarEventoImportar, 500); // Reintentar asignar evento después de un breve tiempo
+    }
+}
+
+// ✅ Limpiar mensaje al marcar nuevamente el checkbox
+function limpiarMensaje() {
+    const mensaje = document.getElementById("mensajeImportacion");
+    if (mensaje) {
+        mensaje.innerHTML = "";
     }
 }
 
@@ -24,24 +34,28 @@ async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
-        // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
         const botonImportar = document.getElementById("importarDatos");
-        const checkImportar = document.getElementById("checkImportar");
+        const checkboxImportar = document.getElementById("checkImportar");
 
+        if (!botonImportar || !checkboxImportar) {
+            console.error("❌ ERROR: No se encontró el botón o el checkbox.");
+            return;
+        }
+
+        // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
         botonImportar.disabled = true;
-        checkImportar.checked = false;
+        checkboxImportar.checked = false;
 
         // ✅ Borrar mensajes previos de éxito o error
-        const mensajeImportacion = document.getElementById("mensajeImportacion");
-        if (mensajeImportacion) mensajeImportacion.innerHTML = "";
+        limpiarMensaje();
 
         // ✅ Obtener datos de la hoja fuente antes de enviarlos
         const responseDatos = await fetch("/api/data/A1:H1000");
         const datos = await responseDatos.json();
 
-        console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5)); // Mostrar primeras 5 filas
+        console.log("📌 Datos obtenidos desde la hoja fuente:", datos.data.slice(0, 5));
 
-        if (!datos.data || datos.data.length < 3) { // Se asegura que haya más de 2 filas (evitando encabezado)
+        if (!datos.data || datos.data.length < 3) { // Evitar encabezados, deben ser más de 2 filas
             console.error("❌ No se encontraron datos válidos en la hoja fuente.");
             mostrarNotificacion("❌ No hay datos nuevos para importar.", "error");
             return;
