@@ -30,19 +30,34 @@ function cargarInterfazImportarDatos() {
         </div>
     `;
 
-    // Habilitar el botón "Importar Datos" solo cuando se marque el checkbox
-    document.getElementById("validacion").addEventListener("change", function() {
-        document.getElementById("importarDatos").disabled = !this.checked;
-    });
+    // ✅ Asegurar que el botón se habilita correctamente al marcar el checkbox
+    const checkbox = document.getElementById("validacion");
+    const botonImportar = document.getElementById("importarDatos");
 
-    // 🔹 Cargar dinámicamente `importar-datos.js` solo cuando se acceda a "Importar Datos"
+    if (checkbox && botonImportar) {
+        checkbox.addEventListener("change", function() {
+            botonImportar.disabled = !this.checked;
+        });
+    } else {
+        console.error("❌ ERROR: No se encontró el checkbox o el botón en el DOM.");
+        return;
+    }
+
+    // ✅ Cargar `importar-datos.js` dinámicamente y asignar eventos solo cuando haya terminado de cargar
     const script = document.createElement("script");
     script.src = "funciones/importar-datos/importar-datos.js";
-    script.onload = () => console.log("✅ Script importar-datos.js cargado correctamente.");
+    script.onload = () => {
+        console.log("✅ Script importar-datos.js cargado correctamente.");
+        if (typeof asignarEventoImportar === "function") {
+            asignarEventoImportar(); // 🔹 Se asegura que el evento se asigne correctamente
+        } else {
+            console.error("❌ ERROR: La función asignarEventoImportar no está definida en importar-datos.js.");
+        }
+    };
     document.body.appendChild(script);
 }
 
-// 🔹 Función global para mostrar notificaciones
+// ✅ Función global para mostrar notificaciones
 function mostrarNotificacion(mensaje, tipo) {
     const notificaciones = document.getElementById("notificaciones");
     if (!notificaciones) return;
