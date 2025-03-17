@@ -2,12 +2,21 @@ async function enviarSolicitudAlServidor() {
     console.log("🚀 Enviando solicitud al servidor para importar datos...");
 
     try {
+        const botonImportar = document.getElementById("importarDatos");
+        const checkImportar = document.getElementById("checkImportar");
+        const mensajeImportacion = document.getElementById("mensajeImportacion");
+
+        if (!botonImportar || !checkImportar || !mensajeImportacion) {
+            console.error("❌ ERROR: No se encontraron los elementos en el DOM.");
+            return;
+        }
+
         // ✅ Deshabilitar el botón y desmarcar el checkbox tras el primer click
-        document.getElementById("importarDatos").disabled = true;
-        document.getElementById("checkImportar").checked = false;
+        botonImportar.disabled = true;
+        checkImportar.checked = false;
 
         // ✅ Borrar mensajes previos de éxito o error
-        document.getElementById("mensajeImportacion").innerHTML = "";
+        mensajeImportacion.innerHTML = "";
 
         // ✅ Obtener datos de la hoja fuente antes de enviarlos
         const responseDatos = await fetch("/api/data/A1:H1000"); // Asegurar que se toman todas las filas
