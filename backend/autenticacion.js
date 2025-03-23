@@ -1,19 +1,23 @@
 const { google } = require("googleapis");
+const fs = require("fs");
+const path = require("path");
 const dotenv = require("dotenv");
 
 dotenv.config();
 
-if (!process.env.CREDENTIALS_JSON) {
-    console.error("❌ ERROR: La variable de entorno CREDENTIALS_JSON no está definida.");
-    process.exit(1); // Termina la ejecución si no hay credenciales
+const credentialsPath = path.join(__dirname, "credentials.json");
+
+if (!fs.existsSync(credentialsPath)) {
+    console.error("❌ ERROR: No se encontró 'credentials.json' en la carpeta 'backend'.");
+    process.exit(1);
 }
 
 let credentials;
 try {
-    credentials = JSON.parse(process.env.CREDENTIALS_JSON);
-    console.log("✅ CREDENTIALS_JSON cargado correctamente.");
+    credentials = JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
+    console.log("✅ CREDENTIALS_JSON cargado correctamente desde 'credentials.json'.");
 } catch (error) {
-    console.error("❌ ERROR al analizar CREDENTIALS_JSON:", error);
+    console.error("❌ ERROR al analizar 'credentials.json':", error);
     process.exit(1);
 }
 
@@ -24,7 +28,6 @@ const auth = new google.auth.GoogleAuth({
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Definir variables de entorno para los IDs de hojas
 const SHEET_RESPUESTAS = process.env.SHEET_RESPUESTAS;
 const SHEET_SEMANAS = process.env.SHEET_SEMANAS;
 
