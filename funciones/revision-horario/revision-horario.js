@@ -1,14 +1,17 @@
-function cargarInterfazRevisionHorario() {
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI/edit?resourcekey=&gid=1207575560#gid=1207575560";
+// URL exacta de la hoja de Google Sheets
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI/edit?resourcekey=&gid=1207575560#gid=1207575560";
 
-  document.getElementById("contenido").innerHTML = `
+function cargarInterfazRevisionHorario() {
+  const contenido = document.getElementById("contenido");
+
+  contenido.innerHTML = `
     <div class="revision-horario-container">
-      <h2 class="titulo"> Revisión de Horario</h2>
+      <h2 class="titulo">Revisión de Horario</h2>
       <p class="descripcion">
         Antes de proceder con la exportación de datos, es imprescindible validar la exactitud y consistencia de la información en la hoja de cálculo.
       </p>
 
-      <h3 class="subtitulo"> Criterios de Validación</h3>
+      <h3 class="subtitulo">Criterios de Validación</h3>
       <ul class="criterios-lista">
         <li><strong>✅ Columna B - Nombre Completo:</strong> Verifique que los nombres estén escritos correctamente y sin abreviaturas.</li>
         <li>• Estandarización recomendada: Copiar y pegar valores para evitar errores.</li>
@@ -18,7 +21,7 @@ function cargarInterfazRevisionHorario() {
         <li>• Formato requerido: <strong>hh:mm am/pm</strong>.</li>
       </ul>
 
-      <p class="finalizacion"><strong> Finalización del proceso:</strong> Una vez validada toda la información, cierre la hoja de cálculo y continúe con el procedimiento.</p>
+      <p class="finalizacion"><strong>Finalización del proceso:</strong> Una vez validada toda la información, cierre la hoja de cálculo y continúe con el procedimiento.</p>
 
       <div class="checkbox-container">
         <input type="checkbox" id="confirmacion"> 
@@ -29,13 +32,17 @@ function cargarInterfazRevisionHorario() {
     </div>
   `;
 
+  // Activar botón y clase visual al marcar el checkbox
   document.getElementById("confirmacion").addEventListener("change", function () {
-    document.getElementById("revisarHorario").disabled = !this.checked;
+    const boton = document.getElementById("revisarHorario");
+    boton.disabled = !this.checked;
+    boton.classList.toggle("activo", this.checked);
   });
 
+  // Funcionalidad del botón
   document.getElementById("revisarHorario").addEventListener("click", function () {
     window.open(sheetUrl, '_blank');
   });
 
-  console.log("✅ Revisión Horario cargada desde función.");
+  console.log("✅ Revisión Horario cargada correctamente.");
 }
