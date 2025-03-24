@@ -1,1 +1,85 @@
-/* importar-datos.css */ 
+.importar-datos-container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.titulo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1C1C1E;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.descripcion {
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.boton-principal {
+  width: 66.66%;
+  padding: 10px;
+  font-size: 14px;
+  background-color: #D1D1D6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  margin: 0 auto 16px auto;
+  display: block;
+  transition: background-color 0.3s;
+}
+
+.boton-principal.activo {
+  background-color: #007AFF;
+}
+
+.consola {
+  background-color: #f1f1f1;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  color: #1C1C1E;
+  min-height: 60px;
+  margin-bottom: 20px;
+}
+
+.nota-final {
+  font-size: 13px;
+  color: #333;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.botones-secundarios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.boton-secundario {
+  width: 33.33%;
+  padding: 8px;
+  font-size: 13px;
+  color: #007AFF;
+  background-color: white;
+  border: 1px solid #007AFF;
+  border-radius: 8px;
+  cursor: default;
+}
+
