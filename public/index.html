@@ -1,194 +1,184 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Planillas - TMI</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #F8F9FA;
-            display: flex;
-            height: 100vh;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Planillas - TMI</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #F8F9FA;
+      display: flex;
+      height: 100vh;
+    }
 
-        /* Menú Lateral */
-        .sidebar {
-            width: 250px;
-            background: #FFFFFF;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
+    .sidebar {
+      width: 250px;
+      background: #FFFFFF;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
 
-        .sidebar h2 {
-            font-size: 18px;
-            color: #1C1C1E;
-            margin-bottom: 10px;
-            text-align: center;
-        }
+    .sidebar h2 {
+      font-size: 18px;
+      color: #1C1C1E;
+      margin-bottom: 10px;
+      text-align: center;
+    }
 
-        .sidebar h3 {
-            font-size: 16px;
-            color: #8E8E93;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+    .sidebar h3 {
+      font-size: 16px;
+      color: #8E8E93;
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-        .menu-group-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #1C1C1E;
-            margin-top: 15px;
-            padding-left: 10px;
-        }
+    .menu-group-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #1C1C1E;
+      margin-top: 15px;
+      padding-left: 10px;
+    }
 
-        .menu-item {
-            font-size: 12px;
-            padding: 6px 8px;
-            color: #1C1C1E;
-            cursor: pointer;
-            transition: background 0.3s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    .menu-item {
+      font-size: 12px;
+      padding: 6px 8px;
+      color: #1C1C1E;
+      cursor: pointer;
+      transition: background 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-        .menu-item:hover {
-            background: rgba(0, 122, 255, 0.1);
-            border-radius: 5px;
-        }
+    .menu-item:hover {
+      background: rgba(0, 122, 255, 0.1);
+      border-radius: 5px;
+    }
 
-        .menu-item.active {
-            background: rgba(0, 122, 255, 0.2);
-            border-radius: 5px;
-            color: #007AFF;
-        }
+    .menu-item.active {
+      background: rgba(0, 122, 255, 0.2);
+      border-radius: 5px;
+      color: #007AFF;
+    }
 
-        /* Contenido */
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* Barra Superior */
-        .topbar {
-            background: #FFFFFF;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .topbar {
+      background: #FFFFFF;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #1C1C1E;
-        }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1C1C1E;
+    }
 
-        .logo {
-            height: 80px;
-            width: auto;
-        }
+    .logo {
+      height: 80px;
+      width: auto;
+    }
 
-        /* Área de Contenido */
-        .main-content {
-            padding: 20px;
-        }
-    </style>
+    .main-content {
+      padding: 20px;
+    }
+  </style>
 </head>
 
 <link rel="stylesheet" href="funciones/revision-horario/revision-horario.css">
 <link rel="stylesheet" href="funciones/importar-datos/importar-datos.css?nocache=1">
 
 <body>
-    <div class="sidebar">
-        <h2>TMI - Tecnomédica Montajes Industriales S.A.</h2>
-        <h3>Gestión de Planillas</h3>
+  <div class="sidebar">
+    <h2>TMI - Tecnomédica Montajes Industriales S.A.</h2>
+    <h3>Gestión de Planillas</h3>
 
-        <div class="menu-group">
-            <div class="menu-group-title">Planilla</div>
-            <div class="menu-item" onclick="cambiarSeccion('revision-horario')">Revisión Horario</div>
-            <div class="menu-item" onclick="cambiarSeccion('importar-datos')">Importar Datos</div>
-            <div class="menu-item" onclick="cambiarSeccion('comprobante')">Comprobante</div>
-            <div class="menu-item" onclick="cambiarSeccion('correcciones')">Correcciones</div>
-        </div>
-
-        <div class="menu-group">
-            <div class="menu-group-title">Licencias</div>
-            <div class="menu-item" onclick="cambiarSeccion('revision-solicitudes')">Revisión Solicitudes</div>
-            <div class="menu-item" onclick="cambiarSeccion('registro')">Registro</div>
-            <div class="menu-item" onclick="cambiarSeccion('historial')">Historial</div>
-        </div>
-
-        <div class="menu-group">
-            <div class="menu-group-title">Beneficios</div>
-            <div class="menu-item" onclick="cambiarSeccion('aguinaldo')">Aguinaldo</div>
-            <div class="menu-item" onclick="cambiarSeccion('cesantia')">Cesantía</div>
-            <div class="menu-item" onclick="cambiarSeccion('prestamos')">Préstamos</div>
-        </div>
-
-        <div class="menu-group">
-            <div class="menu-group-title">Datos</div>
-            <div class="menu-item" onclick="cambiarSeccion('persona')">Persona</div>
-            <div class="menu-item" onclick="cambiarSeccion('dias-feriados')">Días Feriados</div>
-            <div class="menu-item" onclick="cambiarSeccion('parametros')">Parámetros</div>
-        </div>
-
-        <div class="menu-group">
-            <div class="menu-group-title">Calendario</div>
-            <div class="menu-item" onclick="cambiarSeccion('visualizacion')">Visualización</div>
-            <div class="menu-item" onclick="cambiarSeccion('agregar-evento')">Agregar Evento</div>
-        </div>
+    <div class="menu-group">
+      <div class="menu-group-title">Planilla</div>
+      <div class="menu-item" onclick="cambiarSeccion('revision-horario')">Revisión Horario</div>
+      <div class="menu-item" onclick="cambiarSeccion('importar-datos')">Importar Datos</div>
+      <div class="menu-item" onclick="cambiarSeccion('comprobante')">Comprobante</div>
+      <div class="menu-item" onclick="cambiarSeccion('correcciones')">Correcciones</div>
     </div>
 
-    <div class="content">
-        <div class="topbar">
-            <div class="title" id="titulo-seccion">Inicio</div>
-            <img src="logo.png" alt="Logo" class="logo">
-        </div>
-        <div class="main-content" id="contenido">
-            <p>Bienvenido al sistema de gestión de planillas.</p>
-        </div>
+    <div class="menu-group">
+      <div class="menu-group-title">Licencias</div>
+      <div class="menu-item" onclick="cambiarSeccion('revision-solicitudes')">Revisión Solicitudes</div>
+      <div class="menu-item" onclick="cambiarSeccion('registro')">Registro</div>
+      <div class="menu-item" onclick="cambiarSeccion('historial')">Historial</div>
     </div>
 
-    <script>
-        function cambiarSeccion(seccion) {
-            document.getElementById("titulo-seccion").innerHTML = seccion.replace("-", " ").toUpperCase();
-            document.getElementById("contenido").innerHTML = `<p>Cargando ${seccion.replace("-", " ")}...</p>`;
+    <div class="menu-group">
+      <div class="menu-group-title">Beneficios</div>
+      <div class="menu-item" onclick="cambiarSeccion('aguinaldo')">Aguinaldo</div>
+      <div class="menu-item" onclick="cambiarSeccion('cesantia')">Cesantía</div>
+      <div class="menu-item" onclick="cambiarSeccion('prestamos')">Préstamos</div>
+    </div>
 
-            const oldScript = document.getElementById("script-dinamico");
-            if (oldScript) {
-                oldScript.remove();
-            }
+    <div class="menu-group">
+      <div class="menu-group-title">Datos</div>
+      <div class="menu-item" onclick="cambiarSeccion('persona')">Persona</div>
+      <div class="menu-item" onclick="cambiarSeccion('dias-feriados')">Días Feriados</div>
+      <div class="menu-item" onclick="cambiarSeccion('parametros')">Parámetros</div>
+    </div>
 
-            const newScript = document.createElement("script");
-            newScript.src = `funciones/${seccion}/${seccion}.js`;
-            newScript.id = "script-dinamico";
-            document.body.appendChild(newScript);
+    <div class="menu-group">
+      <div class="menu-group-title">Calendario</div>
+      <div class="menu-item" onclick="cambiarSeccion('visualizacion')">Visualización</div>
+      <div class="menu-item" onclick="cambiarSeccion('agregar-evento')">Agregar Evento</div>
+    </div>
+  </div>
 
-            document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
-            event.currentTarget.classList.add("active");
-		// 🔹 Asegurar que "Importar Datos" cargue correctamente
-		if (seccion === "importar-datos") {
-   		 setTimeout(() => {
-     		   if (typeof cargarInterfazImportarDatos === "function") {
-          	  cargarInterfazImportarDatos();
-     	   } else {
-            console.error("❌ ERROR: `cargarInterfazImportarDatos` no está definido.");
+  <div class="content">
+    <div class="topbar">
+      <div class="title" id="titulo-seccion">Inicio</div>
+      <img src="logo.png" alt="Logo" class="logo">
+    </div>
+    <div class="main-content" id="contenido">
+      <p>Bienvenido al sistema de gestión de planillas.</p>
+    </div>
+  </div>
+
+  <script>
+    function cambiarSeccion(seccion) {
+      document.getElementById("titulo-seccion").innerHTML = seccion.replace("-", " ").toUpperCase();
+      document.getElementById("contenido").innerHTML = `<p>Cargando ${seccion.replace("-", " ")}...</p>`;
+
+      const oldScript = document.getElementById("script-dinamico");
+      if (oldScript) oldScript.remove();
+
+      const newScript = document.createElement("script");
+      newScript.src = `funciones/${seccion}/${seccion}.js`;
+      newScript.id = "script-dinamico";
+      newScript.onload = () => {
+        if (seccion === "importar-datos" && typeof cargarInterfazImportarDatos === "function") {
+          cargarInterfazImportarDatos();
         }
-    }, 500);
-}
-
+        if (seccion === "revision-horario" && typeof cargarInterfazRevisionHorario === "function") {
+          cargarInterfazRevisionHorario();
         }
-    </script>
+      };
+      document.body.appendChild(newScript);
 
-    <script src="funciones/importar-datos/cargar-interfaz.js"></script>
-    
+      document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+      event.currentTarget.classList.add("active");
+    }
+  </script>
+
+  <script src="funciones/importar-datos/cargar-interfaz.js"></script>
 </body>
 </html>
