@@ -3,15 +3,15 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Servir archivos estáticos desde la carpeta public (frontend)
+// Servir carpeta pública y funciones
 app.use(express.static(path.join(__dirname, "../public")));
+app.use("/funciones", express.static(path.join(__dirname, "../funciones")));
 
-// Ruta raíz (opcional)
+// Ruta raíz
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
