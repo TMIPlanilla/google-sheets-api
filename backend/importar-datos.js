@@ -1,64 +1,64 @@
 const { google } = require('googleapis');
-const auth = require('./autenticacion');
+const { auth } = require('./autenticacion');
 
-const SHEET_ID_ORIGEN = '1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI';
-const SHEET_ID_DESTINO = '1lgu13gDLZUPz8k35mOhWQxImfAKtie8qNWxdtMkjslY';
-
+/**
+ * Importar datos desde Google Sheets:
+ * Fuente: archivo con hoja "Respuestasformulario"
+ * Destino: archivo con hoja "Semanas"
+ */
 async function importarDatos(req, res) {
-  try {
-    const sheets = google.sheets({ version: 'v4', auth });
+  console.log("🔄 Iniciando proceso de importación...");
 
-    // 1. Leer datos desde la hoja fuente
-    const origen = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID_ORIGEN,
-      range: 'Respuestasformulario!A1:H1000',
+  try {
+    const authClient = await auth();
+    const sheets = google.sheets({ version: 'v4', auth: authClient });
+
+    // IDs y nombres de hoja fijos
+    const ID_ORIGEN = '1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI';
+    const HOJA_ORIGEN = 'Respuestasformulario';
+    const ID_DESTINO = '1vqK4_8cxheoA8nxSPrytvxRsOnHIPv8GuJ5WzL-RB90';
+    const HOJA_DESTINO = 'Semanas';
+
+    const rangoLectura = `${HOJA_ORIGEN}!A1:H1000`;
+
+    // Leer datos desde la hoja fuente
+    const respuesta = await sheets.spreadsheets.values.get({
+      spreadsheetId: ID_ORIGEN,
+      range: rangoLectura,
     });
 
-    const datos = origen.data.values || [];
+    const datos = respuesta.data.values || [];
+
     if (datos.length === 0) {
-      return res.status(400).json({ mensaje: '⚠️ No se encontraron datos en la hoja de origen.' });
+      console.log("⚠️ No se encontraron datos en la hoja origen.");
+      return res.status(200).json({ mensaje: "La hoja origen está vacía." });
     }
 
-    // 2. Leer la celda IDENT!D9 del archivo destino
-    const meta = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID_DESTINO,
-      range: 'IDENT!D9',
+    console.log(`📥 ${datos.length} filas leídas desde la hoja fuente.`);
+
+    // Buscar primera fila vacía en la hoja destino
+    const respuestaDestino = await sheets.spreadsheets.values.get({
+      spreadsheetId: ID_DESTINO,
+      range: `${HOJA_DESTINO}!A:A`,
     });
 
-    const celdaD9 = meta.data.values?.[0]?.[0] || '(vacía)';
+    const filasExistentes = respuestaDestino.data.values?.length || 0;
+    const rangoPegado = `${HOJA_DESTINO}!A${filasExistentes + 1}`;
 
-    // 3. Usar siempre la hoja "Semanas"
-    const hojaDestino = 'Semanas';
-
-    // 4. Buscar la primera fila vacía en la hoja destino
-    const lecturaDestino = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID_DESTINO,
-      range: `${hojaDestino}!A1:A10000`,
-    });
-
-    const filasExistentes = lecturaDestino.data.values ? lecturaDestino.data.values.length : 0;
-    const filaInicio = filasExistentes + 1;
-
-    // 5. Escribir los datos importados
+    // Escribir los datos en la hoja destino
     await sheets.spreadsheets.values.update({
-      spreadsheetId: SHEET_ID_DESTINO,
-      range: `${hojaDestino}!A${filaInicio}`,
+      spreadsheetId: ID_DESTINO,
+      range: rangoPegado,
       valueInputOption: 'RAW',
-      requestBody: {
-        values: datos,
-      },
+      requestBody: { values: datos },
     });
 
-    return res.json({
-      mensaje: `✅ Importación completada.`,
-      origen: `${datos.length} filas extraídas desde 'Respuestasformulario'`,
-      destino: `Insertadas en hoja '${hojaDestino}' desde la fila ${filaInicio}`,
-      referenciaD9: `Valor leído de IDENT!D9: "${celdaD9}"`,
-    });
+    console.log(`✅ Datos importados correctamente en rango: ${rangoPegado}`);
+    res.status(200).json({ mensaje: "Datos importados correctamente." });
 
   } catch (error) {
-    console.error('❌ Error al importar datos:', error);
-    return res.status(500).json({ mensaje: '❌ Error al importar datos', error: error.message });
+    console.error("❌ Error al importar datos:", error);
+    res.status(500).json({ error: "Ocurrió un error al importar los datos." });
   }
 }
 
