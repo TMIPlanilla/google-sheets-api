@@ -1,69 +1,65 @@
-// backend/importar-datos.js
-
-const express = require('express');
 const { google } = require('googleapis');
-const auth = require('./autenticacion');
+const { auth } = require('./autenticacion');
 
-const router = express.Router();
+/**
+ * Importar datos desde Google Sheets:
+ * Fuente: archivo con hoja "Respuestasformulario"
+ * Destino: archivo con hoja "Semanas"
+ */
+async function importarDatos(req, res) {
+  console.log("🔄 Iniciando proceso de importación...");
 
-const SHEET_ID_ORIGEN = '1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI';
-const SHEET_ID_DESTINO = '1vqK4_8cxheoA8nxSPrytvxRsOnHIPv8GuJ5WzL-RB90';
-const HOJA_ORIGEN = 'Respuestasformulario';
-const HOJA_DESTINO = 'Semanas';
-
-router.post('/importar-datos', async (req, res) => {
-  console.log('🔄 Iniciando proceso de importación...');
   try {
     const authClient = await auth();
     const sheets = google.sheets({ version: 'v4', auth: authClient });
 
+    // IDs y nombres de hoja fijos
+    const ID_ORIGEN = '1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI';
+    const HOJA_ORIGEN = 'Respuestasformulario';
+    const ID_DESTINO = '1vqK4_8cxheoA8nxSPrytvxRsOnHIPv8GuJ5WzL-RB90';
+    const HOJA_DESTINO = 'Semanas';
+
+    const rangoLectura = `${HOJA_ORIGEN}!A1:H1000`;
+
     // Leer datos desde la hoja fuente
-    const respuestaFuente = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID_ORIGEN,
-      range: `${HOJA_ORIGEN}!A1:H1000`,
+    const respuesta = await sheets.spreadsheets.values.get({
+      spreadsheetId: ID_ORIGEN,
+      range: rangoLectura,
     });
-    const filasFuente = respuestaFuente.data.values || [];
 
-    if (filasFuente.length <= 1) {
-      return res.status(400).send('⚠️ No hay datos nuevos para importar.');
+    const datos = respuesta.data.values || [];
+
+    if (datos.length === 0) {
+      console.log("⚠️ No se encontraron datos en la hoja origen.");
+      return res.status(200).json({ mensaje: "La hoja origen está vacía." });
     }
 
-    // Leer datos existentes en la hoja destino
+    console.log(`📥 ${datos.length} filas leídas desde la hoja fuente.`);
+
+    // Buscar primera fila vacía en la hoja destino
     const respuestaDestino = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID_DESTINO,
-      range: `${HOJA_DESTINO}!A1:H1000`,
-    });
-    const filasDestino = respuestaDestino.data.values || [];
-
-    // Convertir filas destino a strings para comparación
-    const hashDestino = new Set(filasDestino.map(fila => fila.join('||')));
-
-    // Filtrar filas únicas (omitir encabezado)
-    const nuevasFilas = filasFuente.slice(1).filter(fila => {
-      return !hashDestino.has(fila.join('||'));
+      spreadsheetId: ID_DESTINO,
+      range: `${HOJA_DESTINO}!A:A`,
     });
 
-    if (nuevasFilas.length === 0) {
-      return res.status(200).send('✅ No se encontraron nuevas filas para agregar.');
-    }
+    const filasExistentes = respuestaDestino.data.values?.length || 0;
+    const rangoPegado = `${HOJA_DESTINO}!A${filasExistentes + 1}`;
 
-    // Agregar nuevas filas con append
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SHEET_ID_DESTINO,
-      range: `${HOJA_DESTINO}!A1:H1`,
+    // Escribir los datos en la hoja destino
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: ID_DESTINO,
+      range: rangoPegado,
       valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      resource: {
-        values: nuevasFilas,
-      },
+      requestBody: { values: datos },
     });
 
-    console.log(`✅ ${nuevasFilas.length} filas nuevas importadas correctamente.`);
-    res.status(200).send(`✅ ${nuevasFilas.length} filas nuevas importadas correctamente.`);
-  } catch (error) {
-    console.error('❌ Error al importar datos:', error);
-    res.status(500).send('❌ Error al importar datos.');
-  }
-});
+    console.log(`✅ Datos importados correctamente en rango: ${rangoPegado}`);
+    res.status(200).json({ mensaje: "Datos importados correctamente." });
 
-module.exports = router;
+  } catch (error) {
+    console.error("❌ Error al importar datos:", error);
+    res.status(500).json({ error: "Ocurrió un error al importar los datos." });
+  }
+}
+
+module.exports = importarDatos;
