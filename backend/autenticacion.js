@@ -1,17 +1,26 @@
-const { google } = require('googleapis');
+const { google } = require("googleapis");
 
-const auth = async () => {
-  const credentials = JSON.parse(process.env.CREDENTIALS_JSON);
+/**
+ * Autenticación usando credenciales desde variable de entorno o archivo.
+ */
+function auth() {
+  let credentials;
 
-  const authClient = new google.auth.JWT(
-    credentials.client_email,
-    null,
-    credentials.private_key,
-    ['https://www.googleapis.com/auth/spreadsheets']
-  );
+  if (process.env.CREDENTIALS_JSON) {
+    // Usar variable de entorno en Render
+    credentials = JSON.parse(process.env.CREDENTIALS_JSON);
+  } else {
+    // Usar archivo local en desarrollo
+    credentials = require("./credentials.json");
+  }
 
-  await authClient.authorize();
+  const authClient = new google.auth.JWT({
+    email: credentials.client_email,
+    key: credentials.private_key,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+
   return authClient;
-};
+}
 
-module.exports = { auth };
+module.exports = auth;
