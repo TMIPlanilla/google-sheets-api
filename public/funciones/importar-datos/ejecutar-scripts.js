@@ -1,3 +1,5 @@
+console.log("✅ ejecutar-scripts.js cargado y ejecutado.");
+
 (function () {
   const btn1 = document.getElementById('boton-actualizar-filas');
   const btn2 = document.getElementById('boton-actualizar-horas');
