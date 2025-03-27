@@ -1,11 +1,13 @@
-console.log("✅ ejecutar-scripts.js cargado y ejecutado.");
+console.log('✅ ejecutar-scripts.js cargado');
 
-(function () {
+function esperarElementoYActivarBotones() {
   const btn1 = document.getElementById('boton-actualizar-filas');
   const btn2 = document.getElementById('boton-actualizar-horas');
   const notificaciones = document.getElementById('zona-notificacion');
 
   if (btn1 && btn2 && notificaciones) {
+    console.log('✅ Botones detectados, iniciando lógica');
+
     btn1.disabled = false;
 
     btn1.addEventListener('click', async () => {
@@ -14,6 +16,7 @@ console.log("✅ ejecutar-scripts.js cargado y ejecutado.");
 
       try {
         const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
+
         const res = await fetch(url);
         const data = await res.text();
 
@@ -28,5 +31,11 @@ console.log("✅ ejecutar-scripts.js cargado y ejecutado.");
         btn1.disabled = false;
       }
     });
+  } else {
+    // Si los botones aún no existen, intenta de nuevo en 200ms
+    setTimeout(esperarElementoYActivarBotones, 200);
   }
-})();
+}
+
+// Ejecutamos
+esperarElementoYActivarBotones();
