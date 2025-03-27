@@ -53,6 +53,8 @@ function inicializarBotonesSecundarios() {
   if (btn1 && btn2 && notificaciones) {
     console.log('✅ Script embebido activo');
 
+    notificaciones.innerHTML += '🟡 Script embebido se ejecutó.<br>';
+
     btn1.disabled = false;
 
     btn1.addEventListener('click', async () => {
