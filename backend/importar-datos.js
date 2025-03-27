@@ -1,75 +1,72 @@
-// importar-datos.js
-
 const express = require("express");
+const router = express.Router();
 const { google } = require("googleapis");
 const auth = require("./autenticacion");
-const router = express.Router();
 
-// IDs fijos
-const ID_HOJA_DESTINO = "1vqK4_8cxheoA8nxSPrytvxRsOnHIPv8GuJ5WzL-RB90";
+// IDs y rangos fijos
 const ID_HOJA_ORIGEN = "1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI";
-
-// Nombres de las hojas
 const NOMBRE_HOJA_ORIGEN = "Respuestasformulario";
+const RANGO_ORIGEN = "A3:H1000";
+
+const ID_HOJA_DESTINO = "1vqK4_8cxheoA8nxSPrytvxRsOnHIPv8GuJ5WzL-RB90";
 const NOMBRE_HOJA_DESTINO = "Semanas";
+const RANGO_DESTINO_BASE = "Semanas!A1:H1";
 
 router.get("/importar-datos", async (req, res) => {
-  console.log("\u{1F504} Iniciando proceso de importación...");
-
+  console.log("\n🔄 Iniciando proceso de importación...");
   try {
     const authClient = await auth();
     const sheets = google.sheets({ version: "v4", auth: authClient });
 
-    // Leer datos desde la hoja fuente (omitir encabezados en fila 1 y 2)
-    const rangoOrigen = `${NOMBRE_HOJA_ORIGEN}!A3:H1000`;
+    // Leer datos desde la hoja fuente (A3:H1000)
     const respuesta = await sheets.spreadsheets.values.get({
       spreadsheetId: ID_HOJA_ORIGEN,
-      range: rangoOrigen,
+      range: `${NOMBRE_HOJA_ORIGEN}!${RANGO_ORIGEN}`,
     });
 
-    const nuevasFilas = respuesta.data.values || [];
-    console.log(`\u{1F4E5} ${nuevasFilas.length} filas leídas desde la hoja fuente.`);
+    const filas = respuesta.data.values || [];
+    console.log(`📥 ${filas.length} filas leídas desde la hoja fuente.`);
 
-    if (nuevasFilas.length === 0) {
-      return res.status(200).send("Sin datos nuevos para importar.");
+    if (!filas.length) {
+      return res.status(200).json({ mensaje: "No hay datos nuevos para importar." });
     }
 
-    // Leer datos actuales en la hoja destino
-    const respuestaDestino = await sheets.spreadsheets.values.get({
+    // Leer todos los datos actuales en la hoja destino para evitar duplicados
+    const existentesRes = await sheets.spreadsheets.values.get({
       spreadsheetId: ID_HOJA_DESTINO,
-      range: `${NOMBRE_HOJA_DESTINO}!A1:H1000`,
+      range: `${NOMBRE_HOJA_DESTINO}!A3:H` // omitimos encabezados (A1 y A2)
     });
 
-    const filasExistentes = respuestaDestino.data.values || [];
-    const filasTexto = filasExistentes.map((fila) => JSON.stringify(fila));
+    const existentes = existentesRes.data.values || [];
 
-    // Filtrar filas nuevas que no estén ya en destino
-    const filasParaAgregar = nuevasFilas.filter(
-      (fila) => !filasTexto.includes(JSON.stringify(fila))
-    );
+    // Filtrar filas que no estén ya presentes en la hoja destino
+    const nuevasFilas = filas.filter(nueva => {
+      return !existentes.some(existente => JSON.stringify(existente) === JSON.stringify(nueva));
+    });
 
-    if (filasParaAgregar.length === 0) {
-      console.log("\u{274C} No hay filas nuevas para agregar.");
-      return res.status(200).send("No hay filas nuevas para agregar.");
+    if (!nuevasFilas.length) {
+      console.log("⚠️ No se encontraron filas nuevas para importar.");
+      return res.status(200).json({ mensaje: "No se encontraron filas nuevas para importar." });
     }
 
-    // Insertar datos nuevos con append
-    await sheets.spreadsheets.values.append({
+    // Agregar las nuevas filas usando append (expande la hoja automáticamente)
+    const resultado = await sheets.spreadsheets.values.append({
       spreadsheetId: ID_HOJA_DESTINO,
-      range: `${NOMBRE_HOJA_DESTINO}!A1:H1`,
+      range: RANGO_DESTINO_BASE,
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
-      requestBody: {
-        values: filasParaAgregar,
+      resource: {
+        values: nuevasFilas,
       },
     });
 
-    const filaInicio = filasExistentes.length + 1;
-    console.log(`\u{2705} Datos importados correctamente en rango: ${NOMBRE_HOJA_DESTINO}!A${filaInicio}`);
-    res.status(200).send(`Importación completada: ${filasParaAgregar.length} filas nuevas.`);
+    const rangoDestino = resultado.data.updates?.updatedRange || "(rango desconocido)";
+    console.log(`✅ Datos importados correctamente en rango: ${rangoDestino}`);
+
+    res.json({ mensaje: `✅ Datos importados correctamente en rango: ${rangoDestino}` });
   } catch (error) {
-    console.error("\u{274C} Error al importar datos:", error);
-    res.status(500).send("Error en el servidor al importar datos.");
+    console.error("❌ Error al importar datos:", error);
+    res.status(500).json({ error: `❌ Error inesperado: ${error.message}` });
   }
 });
 
