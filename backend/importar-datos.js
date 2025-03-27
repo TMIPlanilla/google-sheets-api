@@ -1,70 +1,75 @@
-// backend/importar-datos.js
+// importar-datos.js
 
 const express = require("express");
-const router = express.Router();
 const { google } = require("googleapis");
 const auth = require("./autenticacion");
+const router = express.Router();
 
-// IDs y nombres fijos
-const ID_HOJA_ORIGEN = "1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI";
-const NOMBRE_HOJA_ORIGEN = "Respuestasformulario";
-const RANGO_ORIGEN = `${NOMBRE_HOJA_ORIGEN}!A3:H1000`;
-
+// IDs fijos
 const ID_HOJA_DESTINO = "1vqK4_8cxheoA8nxSPrytvxRsOnHIPv8GuJ5WzL-RB90";
-const NOMBRE_HOJA_DESTINO = "Semanas";
-const RANGO_DESTINO_BASE = `${NOMBRE_HOJA_DESTINO}!A1:H1`; // Para append
+const ID_HOJA_ORIGEN = "1OjieaBUcl7O181IGUTLlZOLHiH7aV_7Yy7UKr0hnshI";
 
-router.post("/importar-datos", async (req, res) => {
+// Nombres de las hojas
+const NOMBRE_HOJA_ORIGEN = "Respuestasformulario";
+const NOMBRE_HOJA_DESTINO = "Semanas";
+
+router.get("/importar-datos", async (req, res) => {
   console.log("\u{1F504} Iniciando proceso de importación...");
 
   try {
     const authClient = await auth();
     const sheets = google.sheets({ version: "v4", auth: authClient });
 
-    // Leer datos desde hoja de origen
-    const respuestaOrigen = await sheets.spreadsheets.values.get({
+    // Leer datos desde la hoja fuente (omitir encabezados en fila 1 y 2)
+    const rangoOrigen = `${NOMBRE_HOJA_ORIGEN}!A3:H1000`;
+    const respuesta = await sheets.spreadsheets.values.get({
       spreadsheetId: ID_HOJA_ORIGEN,
-      range: RANGO_ORIGEN,
+      range: rangoOrigen,
     });
 
-    const datosNuevos = respuestaOrigen.data.values || [];
-    console.log(`📥 ${datosNuevos.length} filas leídas desde la hoja fuente.`);
+    const nuevasFilas = respuesta.data.values || [];
+    console.log(`\u{1F4E5} ${nuevasFilas.length} filas leídas desde la hoja fuente.`);
 
-    if (datosNuevos.length === 0) {
-      return res.status(200).send("No hay datos nuevos para importar.");
+    if (nuevasFilas.length === 0) {
+      return res.status(200).send("Sin datos nuevos para importar.");
     }
 
-    // Leer datos actuales en hoja de destino para evitar duplicados
+    // Leer datos actuales en la hoja destino
     const respuestaDestino = await sheets.spreadsheets.values.get({
       spreadsheetId: ID_HOJA_DESTINO,
-      range: `${NOMBRE_HOJA_DESTINO}!A3:H1000`,
+      range: `${NOMBRE_HOJA_DESTINO}!A1:H1000`,
     });
 
-    const datosExistentes = (respuestaDestino.data.values || []).map((fila) => fila.join("||"));
+    const filasExistentes = respuestaDestino.data.values || [];
+    const filasTexto = filasExistentes.map((fila) => JSON.stringify(fila));
 
-    const datosFiltrados = datosNuevos.filter((fila) => fila.join("||").trim() !== "" && !datosExistentes.includes(fila.join("||")));
+    // Filtrar filas nuevas que no estén ya en destino
+    const filasParaAgregar = nuevasFilas.filter(
+      (fila) => !filasTexto.includes(JSON.stringify(fila))
+    );
 
-    if (datosFiltrados.length === 0) {
-      console.log("✅ No hay filas nuevas para agregar (todo está actualizado).\n");
+    if (filasParaAgregar.length === 0) {
+      console.log("\u{274C} No hay filas nuevas para agregar.");
       return res.status(200).send("No hay filas nuevas para agregar.");
     }
 
-    // Agregar datos nuevos al final usando append
+    // Insertar datos nuevos con append
     await sheets.spreadsheets.values.append({
       spreadsheetId: ID_HOJA_DESTINO,
-      range: RANGO_DESTINO_BASE,
+      range: `${NOMBRE_HOJA_DESTINO}!A1:H1`,
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
-      resource: {
-        values: datosFiltrados,
+      requestBody: {
+        values: filasParaAgregar,
       },
     });
 
-    console.log(`✅ ${datosFiltrados.length} filas importadas correctamente.\n`);
-    res.status(200).send(`Importación completada. ${datosFiltrados.length} filas nuevas agregadas.`);
+    const filaInicio = filasExistentes.length + 1;
+    console.log(`\u{2705} Datos importados correctamente en rango: ${NOMBRE_HOJA_DESTINO}!A${filaInicio}`);
+    res.status(200).send(`Importación completada: ${filasParaAgregar.length} filas nuevas.`);
   } catch (error) {
-    console.error("❌ Error al importar datos:", error);
-    res.status(500).send("Error al importar datos");
+    console.error("\u{274C} Error al importar datos:", error);
+    res.status(500).send("Error en el servidor al importar datos.");
   }
 });
 
