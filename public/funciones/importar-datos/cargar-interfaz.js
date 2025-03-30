@@ -3,7 +3,7 @@ function cargarInterfazImportarDatos() {
   contenedor.innerHTML = `
     <div class="caja-ios">
       <h2 class="titulo">Importar Datos</h2>
-      <p class="descripcion">Valida que la hoja "RespuestasFormulario" esté actualizada.</p>
+      <p class="descripcion">Valida que la hoja \"RespuestasFormulario\" esté actualizada.</p>
       <div class="checkbox-container">
         <input type="checkbox" id="validar-checkbox">
         <label for="validar-checkbox"> He validado la información</label>
@@ -21,6 +21,7 @@ function cargarInterfazImportarDatos() {
   const botonImportar = document.getElementById('boton-importar-datos');
   const notificacion = document.getElementById('zona-notificacion');
   const boton1 = document.getElementById('boton-actualizar-filas');
+  const boton2 = document.getElementById('boton-actualizar-horas');
 
   checkbox.addEventListener('change', () => {
     botonImportar.disabled = !checkbox.checked;
@@ -33,41 +34,33 @@ function cargarInterfazImportarDatos() {
       const respuesta = await fetch('/importar-datos');
       const resultado = await respuesta.text();
       notificacion.innerHTML += `✅ ${resultado}<br>`;
-      document.getElementById('boton-actualizar-filas').disabled = false;
+
+      // Activar botón secundario
+      boton1.disabled = false;
+
+      // Vincular lógica directamente
+      boton1.addEventListener('click', async () => {
+        boton1.disabled = true;
+        notificacion.innerHTML += '• Ejecutando actualización de filas pendientes...<br>';
+
+        try {
+          const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
+          const res = await fetch(url);
+          const data = await res.text();
+
+          notificacion.innerHTML += `✅ ${data}<br>`;
+
+          if (data.toLowerCase().includes('completado')) {
+            boton2.disabled = false;
+          }
+        } catch (error) {
+          notificacion.innerHTML += `❌ Error al ejecutar el script: ${error.message}<br>`;
+        } finally {
+          boton1.disabled = false;
+        }
+      });
     } catch (error) {
       notificacion.innerHTML += `❌ Error: ${error.message}<br>`;
     }
-  });
-
-  // Ejecutar directamente sin condicionales
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn1 = document.getElementById('boton-actualizar-filas');
-    const btn2 = document.getElementById('boton-actualizar-horas');
-    const notificaciones = document.getElementById('zona-notificacion');
-
-    console.log('✅ Script directo embebido activo');
-
-    if (!btn1 || !btn2 || !notificaciones) return;
-
-    btn1.addEventListener('click', async () => {
-      btn1.disabled = true;
-      notificaciones.innerHTML += '• Ejecutando actualización de filas pendientes...<br>';
-
-      try {
-        const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
-        const res = await fetch(url);
-        const data = await res.text();
-
-        notificaciones.innerHTML += `✅ ${data}<br>`;
-
-        if (data.toLowerCase().includes('completado')) {
-          btn2.disabled = false;
-        }
-      } catch (error) {
-        notificaciones.innerHTML += `❌ Error al ejecutar el script: ${error.message}<br>`;
-      } finally {
-        btn1.disabled = false;
-      }
-    });
   });
 }
