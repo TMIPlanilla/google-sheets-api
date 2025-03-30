@@ -33,29 +33,21 @@ function cargarInterfazImportarDatos() {
       const respuesta = await fetch('/importar-datos');
       const resultado = await respuesta.text();
       notificacion.innerHTML += `✅ ${resultado}<br>`;
-      boton1.disabled = false;
+      document.getElementById('boton-actualizar-filas').disabled = false;
     } catch (error) {
       notificacion.innerHTML += `❌ Error: ${error.message}<br>`;
     }
   });
 
-  // ✅ Ejecuta los scripts secundarios directamente desde aquí
-  inicializarBotonesSecundarios();
-}
+  // Ejecutar directamente sin condicionales
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn1 = document.getElementById('boton-actualizar-filas');
+    const btn2 = document.getElementById('boton-actualizar-horas');
+    const notificaciones = document.getElementById('zona-notificacion');
 
-// === Función inline para manejar los botones blancos ===
+    console.log('✅ Script directo embebido activo');
 
-function inicializarBotonesSecundarios() {
-  const btn1 = document.getElementById('boton-actualizar-filas');
-  const btn2 = document.getElementById('boton-actualizar-horas');
-  const notificaciones = document.getElementById('zona-notificacion');
-
-  if (btn1 && btn2 && notificaciones) {
-    console.log('✅ Script embebido activo');
-
-    notificaciones.innerHTML += '🟡 Script embebido se ejecutó.<br>';
-
-    btn1.disabled = false;
+    if (!btn1 || !btn2 || !notificaciones) return;
 
     btn1.addEventListener('click', async () => {
       btn1.disabled = true;
@@ -63,7 +55,6 @@ function inicializarBotonesSecundarios() {
 
       try {
         const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
-
         const res = await fetch(url);
         const data = await res.text();
 
@@ -78,7 +69,5 @@ function inicializarBotonesSecundarios() {
         btn1.disabled = false;
       }
     });
-  } else {
-    console.warn('⚠️ No se detectaron los botones secundarios');
-  }
+  });
 }
