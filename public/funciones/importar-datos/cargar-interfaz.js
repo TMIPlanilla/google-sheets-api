@@ -19,19 +19,17 @@ function cargarInterfazImportarDatos() {
 
   console.log('✅ Interfaz Importar Datos cargada');
 
-  setTimeout(() => {
+  const observer = new MutationObserver(() => {
     const checkbox = document.getElementById('validar-checkbox');
     const botonImportar = document.getElementById('boton-importar-datos');
     const notificacion = document.getElementById('zona-notificacion');
     const boton1 = document.getElementById('boton-actualizar-filas');
     const boton2 = document.getElementById('boton-actualizar-horas');
 
-    if (!boton1) {
-      console.warn('❌ El botón blanco no está disponible tras timeout');
-      return;
-    }
+    if (!boton1 || !botonImportar || !checkbox) return;
 
-    console.log('✅ Botón blanco detectado y esperando evento');
+    console.log('✅ Botón blanco detectado (observer)');
+    observer.disconnect(); // Detener observación
 
     checkbox.addEventListener('change', () => {
       botonImportar.disabled = !checkbox.checked;
@@ -72,5 +70,10 @@ function cargarInterfazImportarDatos() {
         notificacion.innerHTML += `❌ Error: ${error.message}<br>`;
       }
     });
-  }, 0);
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
 }
