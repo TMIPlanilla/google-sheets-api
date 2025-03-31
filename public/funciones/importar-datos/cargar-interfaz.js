@@ -2,8 +2,8 @@ function cargarInterfazImportarDatos() {
   const contenedor = document.getElementById('contenedor-principal');
   contenedor.innerHTML = `
     <div class="caja-ios">
-      <h2 class="titulo">Importar Datos</h2>
-      <p class="descripcion">Valida que la hoja \"RespuestasFormulario\" esté actualizada.</p>
+      <h2 class="titulo">Importar Datos ✅ v5</h2>
+      <p class="descripcion">Valida que la hoja "RespuestasFormulario" esté actualizada.</p>
       <div class="checkbox-container">
         <input type="checkbox" id="validar-checkbox">
         <label for="validar-checkbox"> He validado la información</label>
@@ -29,7 +29,7 @@ function cargarInterfazImportarDatos() {
     if (!boton1 || !botonImportar || !checkbox) return;
 
     console.log('✅ Botón blanco detectado (observer)');
-    observer.disconnect(); // Detener observación
+    observer.disconnect();
 
     checkbox.addEventListener('change', () => {
       botonImportar.disabled = !checkbox.checked;
