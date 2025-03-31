@@ -139,7 +139,7 @@
     </div>
 
     <div class="menu-group">
-      <div class="menu-group-title">Calendario</div>
+      <div class="menu-group-title">Calendario GooGle</div>
       <div class="menu-item" onclick="cambiarSeccion('visualizacion')">Visualización</div>
       <div class="menu-item" onclick="cambiarSeccion('agregar-evento')">Agregar Evento</div>
     </div>
@@ -179,6 +179,11 @@
       document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
       event.currentTarget.classList.add("active");
     }
-  </script>
+  </script><!-- 🔧 Botón de prueba temporal para cargar interfaz -->
+<button onclick="cargarInterfazImportarDatos()" style="position:fixed; bottom:20px; right:20px; z-index:9999; padding:10px;">
+  🧪 Probar Importar Datos
+</button>
+
+
 </body>
 </html>
