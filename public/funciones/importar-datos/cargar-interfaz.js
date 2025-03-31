@@ -23,11 +23,35 @@ function cargarInterfazImportarDatos() {
   const boton1 = document.getElementById('boton-actualizar-filas');
   const boton2 = document.getElementById('boton-actualizar-horas');
 
+  // Activar botón de importar tras validación
   checkbox.addEventListener('change', () => {
     botonImportar.disabled = !checkbox.checked;
     botonImportar.classList.toggle('activo', checkbox.checked);
   });
 
+  // Lógica del botón blanco: definida directamente al cargar
+  boton1.addEventListener('click', async () => {
+    boton1.disabled = true;
+    notificacion.innerHTML += '• Ejecutando actualización de filas pendientes...<br>';
+
+    try {
+      const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
+      const res = await fetch(url);
+      const data = await res.text();
+
+      notificacion.innerHTML += `✅ ${data}<br>`;
+
+      if (data.toLowerCase().includes('completado')) {
+        boton2.disabled = false;
+      }
+    } catch (error) {
+      notificacion.innerHTML += `❌ Error al ejecutar el script: ${error.message}<br>`;
+    } finally {
+      boton1.disabled = false;
+    }
+  });
+
+  // Lógica del botón azul
   botonImportar.addEventListener('click', async () => {
     notificacion.innerHTML = '• Importando datos...<br>';
     try {
@@ -35,30 +59,8 @@ function cargarInterfazImportarDatos() {
       const resultado = await respuesta.text();
       notificacion.innerHTML += `✅ ${resultado}<br>`;
 
-      // Activar botón secundario
+      // ✅ Activar botón blanco una vez importado
       boton1.disabled = false;
-
-      // Vincular lógica directamente
-      boton1.addEventListener('click', async () => {
-        boton1.disabled = true;
-        notificacion.innerHTML += '• Ejecutando actualización de filas pendientes...<br>';
-
-        try {
-          const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
-          const res = await fetch(url);
-          const data = await res.text();
-
-          notificacion.innerHTML += `✅ ${data}<br>`;
-
-          if (data.toLowerCase().includes('completado')) {
-            boton2.disabled = false;
-          }
-        } catch (error) {
-          notificacion.innerHTML += `❌ Error al ejecutar el script: ${error.message}<br>`;
-        } finally {
-          boton1.disabled = false;
-        }
-      });
     } catch (error) {
       notificacion.innerHTML += `❌ Error: ${error.message}<br>`;
     }
