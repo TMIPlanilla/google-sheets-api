@@ -17,52 +17,60 @@ function cargarInterfazImportarDatos() {
     </div>
   `;
 
-  const checkbox = document.getElementById('validar-checkbox');
-  const botonImportar = document.getElementById('boton-importar-datos');
-  const notificacion = document.getElementById('zona-notificacion');
-  const boton1 = document.getElementById('boton-actualizar-filas');
-  const boton2 = document.getElementById('boton-actualizar-horas');
+  console.log('✅ Interfaz Importar Datos cargada');
 
-  // Activar botón de importar tras validación
-  checkbox.addEventListener('change', () => {
-    botonImportar.disabled = !checkbox.checked;
-    botonImportar.classList.toggle('activo', checkbox.checked);
-  });
+  setTimeout(() => {
+    const checkbox = document.getElementById('validar-checkbox');
+    const botonImportar = document.getElementById('boton-importar-datos');
+    const notificacion = document.getElementById('zona-notificacion');
+    const boton1 = document.getElementById('boton-actualizar-filas');
+    const boton2 = document.getElementById('boton-actualizar-horas');
 
-  // Lógica del botón blanco: definida directamente al cargar
-  boton1.addEventListener('click', async () => {
-    boton1.disabled = true;
-    notificacion.innerHTML += '• Ejecutando actualización de filas pendientes...<br>';
+    if (!boton1) {
+      console.warn('❌ El botón blanco no está disponible tras timeout');
+      return;
+    }
 
-    try {
-      const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
-      const res = await fetch(url);
-      const data = await res.text();
+    console.log('✅ Botón blanco detectado y esperando evento');
 
-      notificacion.innerHTML += `✅ ${data}<br>`;
+    checkbox.addEventListener('change', () => {
+      botonImportar.disabled = !checkbox.checked;
+      botonImportar.classList.toggle('activo', checkbox.checked);
+    });
 
-      if (data.toLowerCase().includes('completado')) {
-        boton2.disabled = false;
+    boton1.addEventListener('click', async () => {
+      boton1.disabled = true;
+      notificacion.innerHTML += '• Ejecutando actualización de filas pendientes...<br>';
+
+      try {
+        const url = 'https://script.google.com/macros/s/AKfycbyj0uqtetlYsoTHN4tBqgZn3Y7hk1qEn2sJZJfxJlbjLlVZau_5WOM9gP_4anTGKTIu3Q/exec?funcion=actualizarFilasPendientes';
+        const res = await fetch(url);
+        const data = await res.text();
+
+        notificacion.innerHTML += `✅ ${data}<br>`;
+
+        if (data.toLowerCase().includes('completado')) {
+          boton2.disabled = false;
+        }
+      } catch (error) {
+        notificacion.innerHTML += `❌ Error al ejecutar el script: ${error.message}<br>`;
+      } finally {
+        boton1.disabled = false;
       }
-    } catch (error) {
-      notificacion.innerHTML += `❌ Error al ejecutar el script: ${error.message}<br>`;
-    } finally {
-      boton1.disabled = false;
-    }
-  });
+    });
 
-  // Lógica del botón azul
-  botonImportar.addEventListener('click', async () => {
-    notificacion.innerHTML = '• Importando datos...<br>';
-    try {
-      const respuesta = await fetch('/importar-datos');
-      const resultado = await respuesta.text();
-      notificacion.innerHTML += `✅ ${resultado}<br>`;
+    botonImportar.addEventListener('click', async () => {
+      notificacion.innerHTML = '• Importando datos...<br>';
+      try {
+        const respuesta = await fetch('/importar-datos');
+        const resultado = await respuesta.text();
+        notificacion.innerHTML += `✅ ${resultado}<br>`;
 
-      // ✅ Activar botón blanco una vez importado
-      boton1.disabled = false;
-    } catch (error) {
-      notificacion.innerHTML += `❌ Error: ${error.message}<br>`;
-    }
-  });
+        boton1.disabled = false;
+        console.log('✅ Botón blanco habilitado tras importar');
+      } catch (error) {
+        notificacion.innerHTML += `❌ Error: ${error.message}<br>`;
+      }
+    });
+  }, 0);
 }
